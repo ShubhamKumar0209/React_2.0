@@ -1,7 +1,7 @@
 import './App.css';
 import InputBox from './components/InputBox';
 import useCurrencyInfo from './hooks/useCurrencyInfo';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 function App() {
   const [amount, setAmount] = useState("");
@@ -11,15 +11,23 @@ function App() {
   const currencyInfo = useCurrencyInfo(from);
   const options = Object.keys(currencyInfo);
   const swap = () => {
-    setFrom(to);
-    setTo(from);
-    setAmount(convertedAmount);
-    setConvertedAmount(amount);
-    convert();
-  }
-  const convert = () => {
-    setConvertedAmount((amount && !isNaN(amount) ? amount : 0) * currencyInfo[to])
-  }
+    const prevFrom = from;
+    const prevTo = to;
+    const prevAmount = amount;
+    const prevConverted = convertedAmount;
+
+    setFrom(prevTo);
+    setTo(prevFrom);
+    setAmount(prevConverted !== 0 ? prevConverted.toString() : "");
+    setConvertedAmount(prevAmount !== "" ? Number(prevAmount) : 0);
+  };
+
+  useEffect(() => {
+    if (amount !== "" && !isNaN(amount)) {
+      setConvertedAmount(Number(amount) * currencyInfo[to]);
+    }
+    // eslint-disable-next-line
+  }, [from, to, amount, currencyInfo, to]);
   return (options.length===0)?<div className='text-center text-white'>Loading...</div>:(
     <div
       style={{
@@ -49,7 +57,6 @@ function App() {
         >
           <form onSubmit={(e) => {
             e.preventDefault();
-            convert();
           }}>
             <div className="w-full mb-3 d-flex justify-content-center">
               <InputBox value={amount} label="From"
@@ -58,7 +65,8 @@ function App() {
                 onCurrencyChange={(currency) => setFrom(currency)}
                 selectCurrency={from}
                 currencyOptions={options}
-                inputStyle={{ width: '450px', height: '48px', fontSize: '1.2rem', textAlign: 'center' }}
+                inputStyle={{ width: '300px', height: '44px', fontSize: '1.1rem', textAlign: 'center' }}
+                selectStyle={{ width: '120px', height: '44px', fontSize: '1.1rem' }}
               />
             </div>
             <div className="d-flex justify-content-center mb-3 gap-3">
@@ -73,7 +81,8 @@ function App() {
                 onCurrencyChange={(currency) => setTo(currency)}
                 selectCurrency={to}
                 currencyOptions={options}
-                inputStyle={{ width: '450px', height: '48px', fontSize: '1.2rem', textAlign: 'center' }}
+                inputStyle={{ width: '300px', height: '44px', fontSize: '1.1rem', textAlign: 'center' }}
+                selectStyle={{ width: '120px', height: '44px', fontSize: '1.1rem' }}
               />
             </div>
           </form>
